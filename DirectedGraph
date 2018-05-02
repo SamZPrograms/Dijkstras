@@ -1,0 +1,180 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dijkstra;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
+
+/**
+ *
+ * @author Archi
+ */
+
+class Vertex implements Comparator<Vertex> {  
+    String city;
+    LinkedList<Edge> edges = new LinkedList<>();
+    
+    boolean known;
+    int distance;
+    Vertex path;
+
+    public Vertex() {}
+    
+    public Vertex(String city) {
+        this.city = city;
+        this.distance = 999999;
+        this.known = false;
+    }
+    
+    @Override
+    public int compare(Vertex v, Vertex u) {
+        if (v.distance < u.distance) return -1;
+        if (u.distance < v.distance) return 1;
+        else return 0;
+    }
+}
+
+class Edge {
+    Vertex currentCity;
+    Vertex adjacentCity;
+    int cost;
+    int time;
+    Edge e;
+    
+    public Edge(Edge e) {
+        this.e = e;
+    }
+
+    public Edge(Vertex v, Vertex u, int cost, int time) {
+        this.currentCity = v;
+        this.adjacentCity = u;
+        this.cost = cost;
+        this.time = time;
+    }
+}
+public class DirectedGraph {
+    
+    private LinkedList<Vertex> adjacencyList =  new LinkedList<>();
+    
+    public void addVertex(String vertex) {
+        Vertex v = new Vertex(vertex);
+        for(Vertex ver : adjacencyList)
+            if(ver.city.equals(vertex)) 
+                return;
+        adjacencyList.add(v);
+    }
+    
+    public void addEdge(String city, String adjacentCity, int cost, int time) {
+        
+        Vertex v = null, u = null;
+        for(Vertex vertex : adjacencyList) {
+            if(vertex.city.equals(city))
+                v = vertex;
+            if(vertex.city.equals(adjacentCity))
+                u = vertex;
+            if(v != null && u != null) {
+                v.edges.add(new Edge(v, u, cost, time)); 
+                break;
+            }
+        }
+    }
+    
+    public void edgeInfo(String city){
+        for (Vertex v : adjacencyList)
+            for (Edge e : v.edges) {
+                System.out.println(city + ": " + e.adjacentCity.distance + " distance from " + e.adjacentCity.city);
+
+            }
+                
+    }
+    
+//    public LinkedList<Vertex> getGraph() {
+//        LinkedList<Vertex> graph = new LinkedList<>();
+//        for (Vertex v : adjacencyList)
+//            graph.add(new Vertex(v.city));
+//        
+//        for (Vertex v : graph) 
+//            for (Edge e : v.edges)
+//                v.edges.add(new Edge(e));
+//        
+//        return graph;
+//    }
+    
+    
+    public LinkedList<Vertex> dijkstra(String city, String destination) {
+        
+        LinkedList<Vertex> shortestPath = new LinkedList<>();
+//        LinkedList<Vertex> graph = new LinkedList<>();
+        PriorityQueue<Vertex> queue = new PriorityQueue<>(adjacencyList.size(), new Vertex());
+        
+//        graph = getGraph();
+        
+        Vertex initialCity = null;
+        for (Vertex v : adjacencyList) {
+            if (v.city.equals(city)) {
+                v.distance = 0;
+                v.known = true;
+                queue.add(v);
+                initialCity = v;
+            } else
+                queue.add(v);
+        }
+                
+        Vertex u;
+        while (!queue.isEmpty()) {
+            u = queue.poll();
+            for (Edge e : u.edges) {
+                if(e.adjacentCity.distance > (u.distance + e.cost)) {
+                    e.adjacentCity.distance = (u.distance + e.cost);
+                    e.adjacentCity.path = u;
+                }
+            }
+        }
+        
+        Vertex finalCity = null;
+        for (Vertex v : adjacencyList) {
+            if (v.city.equals(destination)) {
+                finalCity = v;
+            }
+        }
+        
+        while (finalCity.city != initialCity.city) {
+            shortestPath.add(finalCity);
+            finalCity = finalCity.path;
+        }
+        
+        shortestPath.add(finalCity);
+        
+        
+        queue.clear();
+        
+        return shortestPath;
+    }
+    
+    public String fileOutputLine(LinkedList<Vertex> shortestPath) {
+        
+        String distance = Integer.toString(shortestPath.getFirst().distance);
+        
+        String outputLine = Integer.toString(shortestPath.size() + 1);
+        while (!shortestPath.isEmpty())
+            outputLine +=  " | " + shortestPath.pollLast().city;
+        
+        shortestPath.clear();
+        
+        return outputLine + " | " + distance;
+    }
+    
+    public void printAdjList() {
+        for (Vertex v : adjacencyList) 
+            System.out.println(v.city + v.distance);
+    }
+    
+}
